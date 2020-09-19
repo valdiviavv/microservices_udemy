@@ -1,5 +1,10 @@
 package com.spring.microServices.user;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,12 +27,28 @@ public class UserResource {
     }
 
     @GetMapping("/users/{id}")
-    public User retrieveUser(@PathVariable int id) {
+    public EntityModel<User> retrieveUser(@PathVariable int id) {
         User user = service.findOne(id);
-        if(user == null)
-            throw new UserNotFoundException("id-" + id);
-        return user;
+
+        if(user==null)
+            throw new UserNotFoundException("id-"+ id);
+
+
+        //"all-users", SERVER_PATH + "/users"
+        //retrieveAllUsers
+        EntityModel<User> resource = EntityModel.of(user);
+
+        WebMvcLinkBuilder linkTo =
+                linkTo(methodOn(this.getClass()).retrieveAllUsers());
+
+        resource.add(linkTo.withRel("all-users"));
+
+        //HATEOAS
+
+        return resource;
     }
+//
+
 
     @DeleteMapping("/users/{id}")
     public void deleteUser(@PathVariable int id) {
